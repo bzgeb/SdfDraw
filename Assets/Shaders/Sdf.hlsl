@@ -96,7 +96,7 @@ float sdBezier( in float2 pos, in float2 A, in float2 B, in float2 C )
     { 
         h = sqrt(h);
         float2 x = (float2(h,-h)-q)/2.0;
-        float2 uv = sign(x)*pow(abs(x), float2(1.0/3.0));
+        float2 uv = sign(x)*pow(abs(x), float2(1.0/3.0, 1.0/3.0));
         float t = clamp( uv.x+uv.y-kx, 0.0, 1.0 );
         res = dot2(d + (c + b*t)*t);
     }
