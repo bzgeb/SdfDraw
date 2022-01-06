@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class SdfManager : MonoBehaviour
 {
-    const int MaxShapes = 40;
+    const int MaxShapes = 128;
     int _numShapes;
-    Material _material;
+    [SerializeField] Material _material;
 
     ComputeBuffer _sdfBuffer;
     ComputeBuffer _vertexBuffer;
@@ -18,20 +18,18 @@ public class SdfManager : MonoBehaviour
 
     void Start()
     {
-        _material = new Material(Shader.Find("SdfShape"));
-
-        _numShapes = Random.Range(18, MaxShapes);
+        _numShapes = Random.Range(32, MaxShapes);
         _sdfBuffer = new ComputeBuffer(_numShapes, sizeof(float) * 6, ComputeBufferType.Default);
         _vertexBuffer = new ComputeBuffer(6, sizeof(float) * 3, ComputeBufferType.Default);
 
         var sdfs = new Sdf[_numShapes];
         for (int i = 0; i < _numShapes; ++i)
         {
-            Vector3 position = new Vector3(Random.Range(-1.6f, 1.6f), Random.Range(-1f, 1f), 0);
+            Vector3 position = new Vector3(Random.Range(-4f, 4f), Random.Range(-2f, 2f), 0);
             sdfs[i] = new Sdf
             {
                 Position = position, Size = Random.Range(0.1f, 0.5f),
-                Direction = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1))
+                Direction = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1)) * Random.Range(2f, 5f)
             };
         }
 
