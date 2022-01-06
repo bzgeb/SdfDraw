@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _material: {fileID: 2100000, guid: 4c11e98bd6bce724ea50a33fc54c5ea8, type: 2}
+  _growSpeed: 1
 --- !u!4 &61994411
 Transform:
   m_ObjectHideFlags: 0
@@ -220,7 +221,7 @@ Camera:
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
-  orthographic: 1
+  orthographic: 0
   orthographic size: 5
   m_Depth: -1
   m_CullingMask:

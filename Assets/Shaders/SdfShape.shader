@@ -3,6 +3,7 @@ Shader "SdfShape"
     Properties 
     {
         _Color ("Color", Color) = (0.8,0.2,0.2,1)
+        [Toggle] _EnableMovement("Enable movement", float) = 0
     }
     SubShader
     {
@@ -26,6 +27,7 @@ Shader "SdfShape"
                 float3 position;
                 float size;
                 float2 direction;
+                float startTime;
             };
 
             struct v2f
@@ -37,6 +39,7 @@ Shader "SdfShape"
 
             fixed4 _Color;
             int _NumSdfs;
+            float _EnableMovement;
             StructuredBuffer<Sdf> _SdfBuffer;
             StructuredBuffer<float3> _VertexBuffer;
 
@@ -63,7 +66,8 @@ Shader "SdfShape"
                 for (int c = 0; c < _NumSdfs; ++c)
                 {
                     const Sdf sdf = _SdfBuffer[c];
-                    float2 pos = (p - sdf.position) + (_Time[0] * sdf.direction);
+                    const float aliveTime = (sdf.startTime - _Time[1]) / 20.0;
+                    float2 pos = (p - sdf.position) + (aliveTime * sdf.direction * _EnableMovement);
                     pos.x = ((pos.x + 4.0) % 8) - 4.0;
                     pos.y = ((pos.y + 2.0) % 4) - 2.0;
                     d = smin(d, sdCircle(pos, sdf.size), 0.1);
