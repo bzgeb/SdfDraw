@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class SdfManager : MonoBehaviour
 {
-    const int MaxShapes = 512;
+    const int MaxShapes = 40;
     int _numShapes;
-    Material material;
+    Material _material;
 
     ComputeBuffer _sdfBuffer;
     ComputeBuffer _vertexBuffer;
@@ -13,21 +13,26 @@ public class SdfManager : MonoBehaviour
     {
         public Vector3 Position;
         public float Size;
+        public Vector2 Direction;
     }
 
     void Start()
     {
-        material = new Material(Shader.Find("SdfShape"));
+        _material = new Material(Shader.Find("SdfShape"));
 
-        _numShapes = Random.Range(128, MaxShapes);
-        _sdfBuffer = new ComputeBuffer(_numShapes, sizeof(float) * 4, ComputeBufferType.Default);
+        _numShapes = Random.Range(18, MaxShapes);
+        _sdfBuffer = new ComputeBuffer(_numShapes, sizeof(float) * 6, ComputeBufferType.Default);
         _vertexBuffer = new ComputeBuffer(6, sizeof(float) * 3, ComputeBufferType.Default);
 
         var sdfs = new Sdf[_numShapes];
         for (int i = 0; i < _numShapes; ++i)
         {
-            Vector3 position = new Vector3(Random.Range(-2f, 2f), Random.Range(-1f, 1f), 0);
-            sdfs[i] = new Sdf { Position = position, Size = Random.Range(0.2f, 0.6f) };
+            Vector3 position = new Vector3(Random.Range(-1.6f, 1.6f), Random.Range(-1f, 1f), 0);
+            sdfs[i] = new Sdf
+            {
+                Position = position, Size = Random.Range(0.1f, 0.5f),
+                Direction = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1))
+            };
         }
 
         _sdfBuffer.SetData(sdfs);
@@ -43,14 +48,14 @@ public class SdfManager : MonoBehaviour
         };
         _vertexBuffer.SetData(vertexBuffer);
 
-        material.SetBuffer("_SdfBuffer", _sdfBuffer);
-        material.SetBuffer("_VertexBuffer", _vertexBuffer);
-        material.SetInt("_NumSdfs", _numShapes);
+        _material.SetBuffer("_SdfBuffer", _sdfBuffer);
+        _material.SetBuffer("_VertexBuffer", _vertexBuffer);
+        _material.SetInt("_NumSdfs", _numShapes);
     }
 
     void OnRenderObject()
     {
-        material.SetPass(0);
+        _material.SetPass(0);
         Graphics.DrawProceduralNow(MeshTopology.Triangles, 6, 1);
     }
 

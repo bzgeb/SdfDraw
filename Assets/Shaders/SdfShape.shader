@@ -16,12 +16,13 @@ Shader "SdfShape"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
+            #include "Sdf.hlsl"
 
             struct Sdf
             {
                 float3 position;
                 float size;
+                float2 direction;
             };
 
             struct v2f
@@ -48,21 +49,23 @@ Shader "SdfShape"
 
             fixed4 frag(v2f i) : COLOR
             {
-                float aspect = (_ScreenParams.x / _ScreenParams.y);
+                const float aspect = (_ScreenParams.x / _ScreenParams.y);
                 float2 uv = i.uv;
                 uv.x *= aspect;
 
-                float l = 0;
+                float2 p = uv;
+
+                float d = 10000000;
                 for (int c = 0; c < _NumSdfs; ++c)
                 {
-                    Sdf sdf = _SdfBuffer[c];
-                    float currentLength = length(sdf.position - uv) / sdf.size;
-                    //l = smoothstep(0.97, 0.98, l);
-                    currentLength = saturate(1 - currentLength);
-                    l = max(l, currentLength);
+                    const Sdf sdf = _SdfBuffer[c];
+                    const float2 pos = p - sdf.position;
+                    d = smin(d, sdCircle(pos, sdf.size), 0.1);
                 }
 
-                return fixed4(l, 0, 0, l);
+                d = smoothstep(0.01, 0.02, d);
+                d = saturate(1 - d);
+                return fixed4(d, 0, 0, 1);
             }
             ENDCG
         }
