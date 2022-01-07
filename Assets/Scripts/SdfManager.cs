@@ -6,6 +6,7 @@ public class SdfManager : MonoBehaviour
     int _numShapes;
     [SerializeField] Material _material;
     [SerializeField] float _growSpeed = 100f;
+    [SerializeField] int _numStartingShapes;
 
     ComputeBuffer _sdfBuffer;
     ComputeBuffer _vertexBuffer;
@@ -25,7 +26,7 @@ public class SdfManager : MonoBehaviour
     {
         _camera = FindObjectOfType<Camera>();
 
-        _numShapes = 1;
+        _numShapes = _numStartingShapes;
         _sdfBuffer = new ComputeBuffer(MaxShapes, sizeof(float) * 7, ComputeBufferType.Default);
         _vertexBuffer = new ComputeBuffer(6, sizeof(float) * 3, ComputeBufferType.Default);
 
@@ -82,7 +83,7 @@ public class SdfManager : MonoBehaviour
     {
         _sdfs[_numShapes] = new Sdf
         {
-            Position = position, Size = 0.1f,
+            Position = position, Size = 0.01f,
             Direction = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1)) * Random.Range(2f, 5f),
             StartTime = Time.time
         };
