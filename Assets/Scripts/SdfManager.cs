@@ -77,6 +77,18 @@ public class SdfManager : MonoBehaviour
             int index = _numShapes - 1;
             ResizeCircle(index, _sdfs[index].Size + (Time.deltaTime * _growSpeed));
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            for (int i = 0; i < _numShapes; ++i)
+            {
+                _sdfs[i].StartTime = Time.time;
+            }
+            _sdfBuffer.SetData(_sdfs);
+
+            var isMovementEnabled = _material.GetFloat("_EnableMovement");
+            _material.SetFloat("_EnableMovement", 1 - isMovementEnabled);
+        }
     }
 
     void AddCircle(Vector3 position)
