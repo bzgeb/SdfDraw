@@ -47,7 +47,7 @@ Shader "SdfShape"
             {
                 v2f o;
 
-                const float3 vertexLocalPos = _VertexBuffer[vertex_id];
+                const float3 vertexLocalPos = _VertexBuffer[vertex_id] * float3(1, _ProjectionParams.x, 1);
 
                 o.vertex = float4(vertexLocalPos.xy, 0.0, 1.0);
                 o.uv = float2(vertexLocalPos.xy);

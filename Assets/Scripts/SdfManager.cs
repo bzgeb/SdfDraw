@@ -48,12 +48,12 @@ public class SdfManager : MonoBehaviour
 
         var vertexBuffer = new Vector3[]
         {
-            new Vector3(-1.0f, -1.0f, 0.0f),
-            new Vector3(1.0f, -1.0f, 0.0f),
             new Vector3(-1.0f, 1.0f, 0.0f),
-            new Vector3(-1.0f, 1.0f, 0.0f),
-            new Vector3(1.0f, -1.0f, 0.0f),
             new Vector3(1.0f, 1.0f, 0.0f),
+            new Vector3(-1.0f, -1.0f, 0.0f),
+            new Vector3(-1.0f, -1.0f, 0.0f),
+            new Vector3(1.0f, 1.0f, 0.0f),
+            new Vector3(1.0f, -1.0f, 0.0f),
         };
         _vertexBuffer.SetData(vertexBuffer);
 
@@ -115,7 +115,7 @@ public class SdfManager : MonoBehaviour
     void OnRenderObject()
     {
         _material.SetPass(0);
-        Graphics.DrawProceduralNow(MeshTopology.Triangles, 6, 1);
+        Graphics.DrawProceduralNow(MeshTopology.Triangles, 6);
     }
 
     void OnDestroy()
