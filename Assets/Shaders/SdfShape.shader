@@ -20,57 +20,67 @@ Shader "SdfShape"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "Sdf.hlsl"
-
-            struct Sdf
+            float smin(float a, float b, float k)
             {
-                float3 position;
-                float size;
-                float2 direction;
-                float startTime;
-            };
-
+                float h = max(k - abs(a - b), 0.0) / k;
+                return min(a, b) - h * h * k * (1.0 / 4.0);
+            }
+            
+            float sdCircle(float2 p, float r)
+            {
+                return length(p) - r;
+            }
+            
             struct v2f
             {
                 float4 vertex : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float size : PSIZE;
             };
+
+            #define MAX_SHAPES 128
 
             fixed4 _Color;
             int _NumSdfs;
             float _EnableMovement;
-            StructuredBuffer<Sdf> _SdfBuffer;
-            StructuredBuffer<float3> _VertexBuffer;
 
-            v2f vert(uint vertex_id : SV_VertexID)
+            float _SdfSizes[MAX_SHAPES];
+            float _SdfStartTimes[MAX_SHAPES];
+            float4 _SdfPositions[MAX_SHAPES];
+            float4 _SdfDirections[MAX_SHAPES];
+
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
+            
+            v2f vert (appdata v)
             {
                 v2f o;
-
-                const float3 vertexLocalPos = _VertexBuffer[vertex_id] * float3(1, _ProjectionParams.x, 1);
-
-                o.vertex = float4(vertexLocalPos.xy, 0.0, 1.0);
-                o.uv = float2(vertexLocalPos.xy);
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = (v.uv * 2.0f) - 1.0f;
                 return o;
             }
 
             fixed4 frag(v2f i) : COLOR
             {
-                const float aspect = (_ScreenParams.x / _ScreenParams.y);
-                float2 uv = i.uv;
-                uv.x *= aspect;
-
-                float2 p = uv;
+                float2 p = i.uv;
 
                 float d = 10000000;
                 for (int c = 0; c < _NumSdfs; ++c)
                 {
-                    const Sdf sdf = _SdfBuffer[c];
-                    const float aliveTime = (sdf.startTime - _Time[1]) / 20.0;
-                    float2 pos = (p - sdf.position) + (aliveTime * sdf.direction * _EnableMovement);
-                    pos.x = ((pos.x + 4.0) % 8) - 4.0;
-                    pos.y = ((pos.y + 2.0) % 4) - 2.0;
-                    d = smin(d, sdCircle(pos, sdf.size), 0.1);
+                    const float size = _SdfSizes[c];
+                    const float3 position = _SdfPositions[c].xyz;
+                    
+                    float startTime = _SdfStartTimes[c];
+                    float2 direction = _SdfDirections[c].xy;
+                    float aliveTime = (startTime - _Time[1]) / 20.0;
+
+                    float2 movement = (aliveTime * direction * _EnableMovement);
+                    float2 pos = (p - position) + movement;
+                    pos.x = ((pos.x + 1.0) % 2) - 1.0;
+                    pos.y = ((pos.y + 1.0) % 2) - 1.0;
+                    d = smin(d, sdCircle(pos, size), 0.1);
                 }
 
                 d = smoothstep(0.02, 0.03, d);

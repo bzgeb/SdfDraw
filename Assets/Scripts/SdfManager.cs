@@ -2,89 +2,88 @@ using UnityEngine;
 
 public class SdfManager : MonoBehaviour
 {
-    const int MaxShapes = 256;
+    const int MaxShapes = 128;
     int _numShapes;
-    [SerializeField] Material _material;
+    [SerializeField] Material _materialPrototype;
+    Material _material;
     [SerializeField] float _growSpeed = 100f;
     [SerializeField] int _numStartingShapes;
 
-    ComputeBuffer _sdfBuffer;
-    ComputeBuffer _vertexBuffer;
-    Sdf[] _sdfs;
+    Vector4[] _sdfPositions;
+    float[] _sdfSizes;
+    Vector4[] _sdfDirections;
+    float[] _sdfStartTimes;
 
     Camera _camera;
 
-    struct Sdf
+    void OnEnable()
     {
-        public Vector3 Position;
-        public float Size;
-        public Vector2 Direction;
-        public float StartTime;
-    }
-
-    void Start()
-    {
+        var meshRenderer = FindObjectOfType<MeshRenderer>();
+        _material = new Material(_materialPrototype);
+        _material.name = "Instance";
+        meshRenderer.material = _material;
         _camera = FindObjectOfType<Camera>();
 
         _numShapes = _numStartingShapes;
-        _sdfBuffer = new ComputeBuffer(MaxShapes, sizeof(float) * 7, ComputeBufferType.Default);
-        _vertexBuffer = new ComputeBuffer(6, sizeof(float) * 3, ComputeBufferType.Default);
 
-        _sdfs = new Sdf[MaxShapes];
-        
-        var aspectRatio = Screen.width / (float)Screen.height;
-        
+        _sdfPositions = new Vector4[MaxShapes];
+        _sdfSizes = new float[MaxShapes];
+        _sdfDirections = new Vector4[MaxShapes];
+        _sdfStartTimes = new float[MaxShapes];
+
         for (int i = 0; i < _numShapes; ++i)
         {
-            Vector3 position = new Vector3(Random.Range(-aspectRatio, aspectRatio), Random.Range(-1, 1), 0);
-            _sdfs[i] = new Sdf
-            {
-                Position = position, Size = Random.Range(0.1f, 0.5f),
-                Direction = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1)) * Random.Range(2f, 5f)
-            };
+            Vector4 position = new Vector4(Random.Range(-1, 1), Random.Range(-1, 1), 0.0f, 1.0f);
+            _sdfPositions[i] = position;
+            _sdfSizes[i] = Random.Range(0.1f, 0.5f);
+            _sdfDirections[i] =
+                new Vector4(Random.Range(-1, 1), Random.Range(-1, 1) * Random.Range(2f, 5f), 0.0f, 0.0f);
+            _sdfStartTimes[i] = Time.time;
         }
 
-        _sdfBuffer.SetData(_sdfs);
-
-        var vertexBuffer = new Vector3[]
+        var vertexBuffer = new Vector4[]
         {
-            new Vector3(-1.0f, 1.0f, 0.0f),
-            new Vector3(1.0f, 1.0f, 0.0f),
-            new Vector3(-1.0f, -1.0f, 0.0f),
-            new Vector3(-1.0f, -1.0f, 0.0f),
-            new Vector3(1.0f, 1.0f, 0.0f),
-            new Vector3(1.0f, -1.0f, 0.0f),
+            new Vector4(-1.0f, 1.0f, 0.0f, 1.0f),
+            new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
+            new Vector4(-1.0f, -1.0f, 0.0f, 1.0f),
+            new Vector4(-1.0f, -1.0f, 0.0f, 1.0f),
+            new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
+            new Vector4(1.0f, -1.0f, 0.0f, 1.0f),
         };
-        _vertexBuffer.SetData(vertexBuffer);
 
-        _material.SetBuffer("_SdfBuffer", _sdfBuffer);
-        _material.SetBuffer("_VertexBuffer", _vertexBuffer);
         _material.SetInt("_NumSdfs", _numShapes);
+        _material.SetVectorArray("_VertexBuffer", vertexBuffer);
+        _material.SetVectorArray("_SdfPositions", _sdfPositions);
+        _material.SetFloatArray("_SdfSizes", _sdfSizes);
+        _material.SetFloatArray("_SdfStartTimes", _sdfStartTimes);
+        _material.SetVectorArray("_SdfDirections", _sdfDirections);
     }
 
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            var aspectRatio = Screen.width / (float)Screen.height;
-            var viewportPosition = _camera.ScreenToViewportPoint(Input.mousePosition) * 2 - Vector3.one;
-            viewportPosition.y = -viewportPosition.y;
-            viewportPosition.x *= aspectRatio;
-            AddCircle(viewportPosition);
+            if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out var hit))
+            {
+                var meshCollider = hit.collider as MeshCollider;
+                var position = hit.textureCoord * 2.0f - Vector2.one;
+                AddCircle(position);
+            }
         }
         else if (Input.GetMouseButton(0))
         {
             int index = _numShapes - 1;
-            ResizeCircle(index, _sdfs[index].Size + (Time.deltaTime * _growSpeed));
+            ResizeCircle(index, _sdfSizes[index] + (Time.deltaTime * _growSpeed));
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             for (int i = 0; i < _numShapes; ++i)
             {
-                _sdfs[i].StartTime = Time.time;
+                _sdfStartTimes[i] = Time.time;
             }
-            _sdfBuffer.SetData(_sdfs);
+
+            _material.SetFloatArray("_SdfStartTimes", _sdfStartTimes);
 
             var isMovementEnabled = _material.GetFloat("_EnableMovement");
             _material.SetFloat("_EnableMovement", 1 - isMovementEnabled);
@@ -93,34 +92,29 @@ public class SdfManager : MonoBehaviour
 
     void AddCircle(Vector3 position)
     {
-        _sdfs[_numShapes] = new Sdf
+        if (_numShapes < MaxShapes)
         {
-            Position = position, Size = 0.01f,
-            Direction = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1)) * Random.Range(2f, 5f),
-            StartTime = Time.time
-        };
-        _sdfBuffer.SetData(_sdfs);
+            _sdfPositions[_numShapes] = position;
+            _sdfDirections[_numShapes] =
+                new Vector4(Random.Range(-1, 1), Random.Range(-1, 1) * Random.Range(2f, 5f), 0.0f, 0.0f);
+            _sdfSizes[_numShapes] = 0.01f;
+            _sdfStartTimes[_numShapes] = Time.time;
+            ++_numShapes;
 
-        ++_numShapes;
-        _material.SetInt("_NumSdfs", _numShapes);
+            _material.SetInt("_NumSdfs", _numShapes);
+            _material.SetVectorArray("_SdfPositions", _sdfPositions);
+            _material.SetFloatArray("_SdfSizes", _sdfSizes);
+            _material.SetFloatArray("_SdfStartTimes", _sdfStartTimes);
+            _material.SetVectorArray("_SdfDirections", _sdfDirections);
+        }
     }
 
     void ResizeCircle(int index, float size)
     {
-        _sdfs[index].Size = size;
-        _sdfs[index].StartTime = Time.time;
-        _sdfBuffer.SetData(_sdfs);
-    }
+        _sdfSizes[index] = size;
+        _sdfStartTimes[index] = Time.time;
 
-    void OnRenderObject()
-    {
-        _material.SetPass(0);
-        Graphics.DrawProceduralNow(MeshTopology.Triangles, 6);
-    }
-
-    void OnDestroy()
-    {
-        _sdfBuffer.Release();
-        _vertexBuffer.Release();
+        _material.SetFloatArray("_SdfSizes", _sdfSizes);
+        _material.SetFloatArray("_SdfStartTimes", _sdfStartTimes);
     }
 }
