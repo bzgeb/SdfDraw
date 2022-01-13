@@ -39,7 +39,6 @@ Shader "SdfShape"
             #define MAX_SHAPES 64
 
             fixed4 _Color;
-            int _NumSdfs;
             float _EnableMovement;
 
             float _SdfSizes[MAX_SHAPES];

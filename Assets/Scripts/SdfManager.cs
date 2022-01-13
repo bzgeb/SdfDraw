@@ -46,18 +46,6 @@ public class SdfManager : MonoBehaviour
             _sdfStartTimes[i] = Time.time;
         }
 
-        var vertexBuffer = new Vector4[]
-        {
-            new Vector4(-1.0f, 1.0f, 0.0f, 1.0f),
-            new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
-            new Vector4(-1.0f, -1.0f, 0.0f, 1.0f),
-            new Vector4(-1.0f, -1.0f, 0.0f, 1.0f),
-            new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
-            new Vector4(1.0f, -1.0f, 0.0f, 1.0f),
-        };
-
-        _material.SetInt("_NumSdfs", _numShapes);
-        _material.SetVectorArray("_VertexBuffer", vertexBuffer);
         _material.SetVectorArray("_SdfPositions", _sdfPositions);
         _material.SetFloatArray("_SdfSizes", _sdfSizes);
         _material.SetFloatArray("_SdfStartTimes", _sdfStartTimes);
@@ -70,7 +58,6 @@ public class SdfManager : MonoBehaviour
         {
             if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out var hit))
             {
-                var meshCollider = hit.collider as MeshCollider;
                 var position = hit.textureCoord * 2.0f - Vector2.one;
                 AddCircle(position);
             }
@@ -106,7 +93,6 @@ public class SdfManager : MonoBehaviour
             _sdfStartTimes[_numShapes] = Time.time;
             ++_numShapes;
 
-            _material.SetInt("_NumSdfs", _numShapes);
             _material.SetVectorArray("_SdfPositions", _sdfPositions);
             _material.SetFloatArray("_SdfSizes", _sdfSizes);
             _material.SetFloatArray("_SdfStartTimes", _sdfStartTimes);
