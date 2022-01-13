@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class SdfManager : MonoBehaviour
 {
-    const int MaxShapes = 128;
+    const int MaxShapes = 64;
     int _numShapes;
     [SerializeField] Material _materialPrototype;
     Material _material;
@@ -31,6 +31,11 @@ public class SdfManager : MonoBehaviour
         _sdfDirections = new Vector4[MaxShapes];
         _sdfStartTimes = new float[MaxShapes];
 
+        for (int i = 0; i < MaxShapes; ++i)
+        {
+            _sdfStartTimes[i] = -1;
+        }
+        
         for (int i = 0; i < _numShapes; ++i)
         {
             Vector4 position = new Vector4(Random.Range(-1, 1), Random.Range(-1, 1), 0.0f, 1.0f);

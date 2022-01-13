@@ -11,7 +11,6 @@ Shader "SdfShape"
         {
             "RenderType"="Transparent"
         }
-        LOD 100
 
         Pass
         {
@@ -37,7 +36,7 @@ Shader "SdfShape"
                 float2 uv : TEXCOORD0;
             };
 
-            #define MAX_SHAPES 128
+            #define MAX_SHAPES 64
 
             fixed4 _Color;
             int _NumSdfs;
@@ -67,11 +66,14 @@ Shader "SdfShape"
                 float2 p = i.uv;
 
                 float d = 10000000;
-                for (int c = 0; c < _NumSdfs; ++c)
+                for (int c = 0; c < MAX_SHAPES; ++c)
                 {
+                    if (_SdfStartTimes[c] == -1)
+                        continue;
+                    
                     const float size = _SdfSizes[c];
                     const float3 position = _SdfPositions[c].xyz;
-                    
+
                     float startTime = _SdfStartTimes[c];
                     float2 direction = _SdfDirections[c].xy;
                     float aliveTime = (startTime - _Time[1]) / 20.0;
