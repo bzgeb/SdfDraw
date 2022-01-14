@@ -6,7 +6,7 @@ public class SdfManager : MonoBehaviour
     int _numShapes;
     [SerializeField] Material _materialPrototype;
     Material _material;
-    [SerializeField] float _growSpeed = 100f;
+    [SerializeField] float _growSpeed = 0.5f;
     [SerializeField, Range(0, MaxShapes)] int _numStartingShapes;
 
     Vector4[] _sdfPositions;
