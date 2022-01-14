@@ -7,7 +7,7 @@ public class SdfManager : MonoBehaviour
     [SerializeField] Material _materialPrototype;
     Material _material;
     [SerializeField] float _growSpeed = 100f;
-    [SerializeField] int _numStartingShapes;
+    [SerializeField, Range(0, MaxShapes)] int _numStartingShapes;
 
     Vector4[] _sdfPositions;
     float[] _sdfSizes;
@@ -35,7 +35,7 @@ public class SdfManager : MonoBehaviour
         {
             _sdfStartTimes[i] = -1;
         }
-        
+
         for (int i = 0; i < _numShapes; ++i)
         {
             Vector4 position = new Vector4(Random.Range(-1, 1), Random.Range(-1, 1), 0.0f, 1.0f);

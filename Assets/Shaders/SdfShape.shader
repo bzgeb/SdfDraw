@@ -1,6 +1,6 @@
 Shader "SdfShape"
 {
-    Properties 
+    Properties
     {
         _Color ("Color", Color) = (0.8,0.2,0.2,1)
         [Toggle] _EnableMovement("Enable movement", float) = 0
@@ -19,22 +19,19 @@ Shader "SdfShape"
             #pragma vertex vert
             #pragma fragment frag
 
+            //source: https://iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
             float smin(float a, float b, float k)
             {
                 float h = max(k - abs(a - b), 0.0) / k;
                 return min(a, b) - h * h * k * (1.0 / 4.0);
             }
-            
+
+            //source: https://iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
             float sdCircle(float2 p, float r)
             {
                 return length(p) - r;
             }
-            
-            struct v2f
-            {
-                float4 vertex : SV_POSITION;
-                float2 uv : TEXCOORD0;
-            };
+
 
             #define MAX_SHAPES 64
 
@@ -51,8 +48,14 @@ Shader "SdfShape"
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
             };
-            
-            v2f vert (appdata v)
+
+            struct v2f
+            {
+                float4 vertex : SV_POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            v2f vert(appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
@@ -69,7 +72,7 @@ Shader "SdfShape"
                 {
                     if (_SdfStartTimes[c] == -1)
                         continue;
-                    
+
                     const float size = _SdfSizes[c];
                     const float3 position = _SdfPositions[c].xyz;
 
